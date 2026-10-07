@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner() {
+      return request.auth != null
+        && request.auth.token.email == "olamilekanogunyoye@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
+
+    match /settings/{doc} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /services/{id} {
+      allow read: if resource.data.published == true || isOwner();
+      allow write: if isOwner();
+    }
+
+    match /categories/{id} {
+      allow read: if resource.data.published == true || isOwner();
+      allow write: if isOwner();
+    }
+
+    match /works/{id} {
+      allow read: if resource.data.published == true || isOwner();
+      allow write: if isOwner();
+    }
+
+    match /socialLinks/{id} {
+      allow read: if resource.data.published == true || isOwner();
+      allow write: if isOwner();
+    }
+
+    match /media/{id} {
+      allow read, write: if isOwner();
+    }
+
+    match /messages/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['id','name','email','subject','message','read','archived','createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
+        && request.resource.data.subject is string && request.resource.data.subject.size() <= 200
+        && request.resource.data.message is string && request.resource.data.message.size() <= 5000
+        && request.resource.data.read == false && request.resource.data.archived == false;
+      allow read, update, delete: if isOwner();
+    }
+  }
+}
